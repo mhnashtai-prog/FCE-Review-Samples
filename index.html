@@ -124,6 +124,10 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       scroll-behavior: smooth;
+      /* CRITICAL FIX: Contain all content within boundaries */
+      max-width: 100%;
+      box-sizing: border-box;
+      contain: layout style paint;
     }
     
     /* Desktop scrollbar styles */
@@ -161,6 +165,9 @@
     
     .card-back {
       transform: rotateY(180deg);
+      /* CRITICAL FIX: Ensure back side respects container width */
+      max-width: 100%;
+      box-sizing: border-box;
     }
     
     .card-label {
@@ -275,10 +282,19 @@
       text-align: justify;
       min-height: calc(100vh - 200px); /* FIXED: Ensure content is tall enough to scroll */
       padding-bottom: 2rem; /* FIXED: Extra padding at bottom */
+      /* CRITICAL FIX: Prevent horizontal overflow that breaks vertical scroll */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
     }
     
     .review-answer p {
       margin-bottom: 1.25rem;
+      /* CRITICAL FIX: Prevent text overflow */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
 
     .review-title {
@@ -300,16 +316,25 @@
     .discourse {
       color: #87CEEB;
       font-weight: 400;
+      /* CRITICAL FIX: Prevent span overflow */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .vocabulary {
       color: inherit;
       font-weight: 400;
+      /* CRITICAL FIX: Prevent span overflow */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .opinion {
       color: #87CEEB;
       font-weight: 400;
+      /* CRITICAL FIX: Prevent span overflow */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     
     .card-hint {

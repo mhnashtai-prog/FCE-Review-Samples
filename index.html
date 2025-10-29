@@ -126,6 +126,9 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 169, 97, 0.4) rgba(28, 28, 30, 0.3);
 }
 
 .scrollable-content::-webkit-scrollbar { 
@@ -469,7 +472,7 @@
         
 <div class="card-face card-back">
   <div class="card-label" id="backLabel">SAMPLE ANSWER</div>
-  <div class="topic-badge" id="topicBadgeBack"></div>
+  <div class="topic-badge" id="scrollableBack"></div>
   
   <div class="scrollable-content">
     <div class="essay-answer" id="essayAnswer"></div>

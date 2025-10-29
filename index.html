@@ -97,6 +97,7 @@
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
+      touch-action: pan-y;
     }
     
     .card.flipped {
@@ -117,6 +118,9 @@
       flex-direction: column;
       box-shadow: none;
       overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     
     .card-face::-webkit-scrollbar { 
@@ -441,7 +445,7 @@
     </header>
     
     <div class="card-container">
-      <div class="card" id="card" onclick="flipCard()">
+      <div class="card" id="card">
         <div class="card-face card-front">
           <div class="card-label">REVIEW QUESTION</div>
           <div style="text-align: center; margin-bottom: 1rem;">
@@ -912,6 +916,9 @@
     let currentIndex = 0;
     let viewedCards = new Set();
     let isFlipped = false;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isScrolling = false;
 
     function render() {
       const review = reviewData[currentIndex];
@@ -946,6 +953,8 @@
     }
 
     function flipCard() {
+      if (isScrolling) return; // Don't flip if user was scrolling
+      
       const card = document.getElementById('card');
       isFlipped = !isFlipped;
       if (isFlipped) {
@@ -1020,6 +1029,47 @@
         resetProgress();
       }
     });
+
+    // Touch event handlers for better mobile scrolling
+    const card = document.getElementById('card');
+    
+    // Click event for desktop
+    card.addEventListener('click', (e) => {
+      // Only flip on click if not on a touch device or if it's a mouse click
+      if (!('ontouchstart' in window)) {
+        flipCard();
+      }
+    });
+    
+    card.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+      isScrolling = false;
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+      const touchMoveY = e.touches[0].clientY;
+      const deltaY = Math.abs(touchMoveY - touchStartY);
+      
+      // If moved more than 10px vertically, consider it scrolling
+      if (deltaY > 10) {
+        isScrolling = true;
+      }
+    }, { passive: true });
+
+    card.addEventListener('touchend', (e) => {
+      const touchDuration = Date.now() - touchStartTime;
+      
+      // If it was a quick tap (less than 200ms) and no scrolling, flip the card
+      if (touchDuration < 200 && !isScrolling) {
+        flipCard();
+      }
+      
+      // Reset after a short delay
+      setTimeout(() => {
+        isScrolling = false;
+      }, 100);
+    }, { passive: true });
 
     // Initialize
     render();

@@ -87,7 +87,8 @@
       padding: 1.5rem;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
       height: calc(100vh - 180px);
-      overflow: hidden;
+      /* FIXED: Changed from overflow: hidden to visible to prevent double scrollbars */
+      overflow: visible;
     }
     
     .card {
@@ -97,7 +98,7 @@
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
-      touch-action: pan-y;
+      /* FIXED: Removed touch-action: pan-y to allow native scrolling */
     }
     
     .card.flipped {
@@ -121,6 +122,8 @@
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      /* FIXED: Added scroll-behavior for smooth scrolling */
+      scroll-behavior: smooth;
     }
     
     .card-face::-webkit-scrollbar { 
@@ -301,6 +304,8 @@
       border-radius: 0.75rem;
       border: 1px solid rgba(201, 169, 97, 0.2);
       text-align: center;
+      /* FIXED: Make hint non-interactive to prevent click conflicts */
+      pointer-events: none;
     }
     
     .controls {
@@ -919,6 +924,7 @@
     let touchStartY = 0;
     let touchStartTime = 0;
     let isScrolling = false;
+    let lastTouchY = 0;
 
     function render() {
       const review = reviewData[currentIndex];
@@ -1030,8 +1036,9 @@
       }
     });
 
-    // Touch event handlers for better mobile scrolling
+    // IMPROVED touch event handlers for better mobile scrolling
     const card = document.getElementById('card');
+    const cardFaces = document.querySelectorAll('.card-face');
     
     // Click event for desktop
     card.addEventListener('click', (e) => {
@@ -1043,25 +1050,28 @@
     
     card.addEventListener('touchstart', (e) => {
       touchStartY = e.touches[0].clientY;
+      lastTouchY = touchStartY;
       touchStartTime = Date.now();
       isScrolling = false;
     }, { passive: true });
 
     card.addEventListener('touchmove', (e) => {
       const touchMoveY = e.touches[0].clientY;
-      const deltaY = Math.abs(touchMoveY - touchStartY);
+      const deltaY = Math.abs(touchMoveY - lastTouchY);
       
-      // If moved more than 10px vertically, consider it scrolling
-      if (deltaY > 10) {
+      // If moved more than 5px vertically, consider it scrolling
+      if (deltaY > 5) {
         isScrolling = true;
       }
+      lastTouchY = touchMoveY;
     }, { passive: true });
 
     card.addEventListener('touchend', (e) => {
       const touchDuration = Date.now() - touchStartTime;
+      const totalDelta = Math.abs(lastTouchY - touchStartY);
       
-      // If it was a quick tap (less than 200ms) and no scrolling, flip the card
-      if (touchDuration < 200 && !isScrolling) {
+      // If it was a quick tap (less than 200ms) and minimal movement (less than 10px), flip the card
+      if (touchDuration < 200 && totalDelta < 10 && !isScrolling) {
         flipCard();
       }
       

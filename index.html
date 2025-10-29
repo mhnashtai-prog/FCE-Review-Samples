@@ -98,7 +98,12 @@
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
-      /* FIXED: Removed touch-action: pan-y to allow native scrolling */
+      /* FIXED: Allow child elements to handle their own pointer events */
+      pointer-events: none;
+    }
+    
+    .card > * {
+      pointer-events: auto;
     }
     
     .card.flipped {
@@ -160,6 +165,7 @@
     
     .card-front {
       z-index: 2;
+      pointer-events: auto;
     }
     
     .card-back {
@@ -167,6 +173,19 @@
       /* CRITICAL FIX: Ensure back side respects container width */
       max-width: 100%;
       box-sizing: border-box;
+      z-index: 1;
+      pointer-events: none; /* Disabled when not visible */
+    }
+    
+    /* CRITICAL FIX: When card is flipped, back should be interactive */
+    .card.flipped .card-front {
+      z-index: 1;
+      pointer-events: none; /* Disable interaction with front when flipped */
+    }
+    
+    .card.flipped .card-back {
+      z-index: 2;
+      pointer-events: auto; /* Enable interaction with back when flipped */
     }
     
     .card-label {
@@ -1086,48 +1105,59 @@
 
     // IMPROVED touch event handlers for better mobile scrolling
     const card = document.getElementById('card');
-    const cardFaces = document.querySelectorAll('.card-face');
+    const cardFront = document.querySelector('.card-front');
+    const cardBack = document.querySelector('.card-back');
     
     // Click event for desktop
-    card.addEventListener('click', (e) => {
+    cardFront.addEventListener('click', (e) => {
       // Only flip on click if not on a touch device or if it's a mouse click
       if (!('ontouchstart' in window)) {
         flipCard();
       }
     });
     
-    card.addEventListener('touchstart', (e) => {
-      touchStartY = e.touches[0].clientY;
-      lastTouchY = touchStartY;
-      touchStartTime = Date.now();
-      isScrolling = false;
-    }, { passive: true });
-
-    card.addEventListener('touchmove', (e) => {
-      const touchMoveY = e.touches[0].clientY;
-      const deltaY = Math.abs(touchMoveY - lastTouchY);
-      
-      // If moved more than 5px vertically, consider it scrolling
-      if (deltaY > 5) {
-        isScrolling = true;
-      }
-      lastTouchY = touchMoveY;
-    }, { passive: true });
-
-    card.addEventListener('touchend', (e) => {
-      const touchDuration = Date.now() - touchStartTime;
-      const totalDelta = Math.abs(lastTouchY - touchStartY);
-      
-      // If it was a quick tap (less than 200ms) and minimal movement (less than 10px), flip the card
-      if (touchDuration < 200 && totalDelta < 10 && !isScrolling) {
+    cardBack.addEventListener('click', (e) => {
+      // Only flip on click if not on a touch device or if it's a mouse click
+      if (!('ontouchstart' in window)) {
         flipCard();
       }
-      
-      // Reset after a short delay
-      setTimeout(() => {
+    });
+    
+    // Attach touch handlers to both card faces
+    [cardFront, cardBack].forEach(face => {
+      face.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        lastTouchY = touchStartY;
+        touchStartTime = Date.now();
         isScrolling = false;
-      }, 100);
-    }, { passive: true });
+      }, { passive: true });
+
+      face.addEventListener('touchmove', (e) => {
+        const touchMoveY = e.touches[0].clientY;
+        const deltaY = Math.abs(touchMoveY - lastTouchY);
+        
+        // If moved more than 5px vertically, consider it scrolling
+        if (deltaY > 5) {
+          isScrolling = true;
+        }
+        lastTouchY = touchMoveY;
+      }, { passive: true });
+
+      face.addEventListener('touchend', (e) => {
+        const touchDuration = Date.now() - touchStartTime;
+        const totalDelta = Math.abs(lastTouchY - touchStartY);
+        
+        // If it was a quick tap (less than 200ms) and minimal movement (less than 10px), flip the card
+        if (touchDuration < 200 && totalDelta < 10 && !isScrolling) {
+          flipCard();
+        }
+        
+        // Reset after a short delay
+        setTimeout(() => {
+          isScrolling = false;
+        }, 100);
+      }, { passive: true });
+    });
 
     // Initialize
     render();

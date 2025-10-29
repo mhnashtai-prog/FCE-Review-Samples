@@ -115,19 +115,21 @@
       border: none;
       border-radius: 1.5rem;
       padding: 0;
+      padding-right: 8px; /* FIXED: Space for scrollbar */
       display: flex;
       flex-direction: column;
       box-shadow: none;
-      overflow-y: auto;
+      overflow-y: scroll; /* FIXED: Changed from auto to scroll to always show scrollbar */
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
-      /* FIXED: Added scroll-behavior for smooth scrolling */
       scroll-behavior: smooth;
     }
     
+    /* Desktop scrollbar styles */
     .card-face::-webkit-scrollbar { 
       width: 8px; 
+      display: block; /* FIXED: Ensure scrollbar is visible */
     }
     
     .card-face::-webkit-scrollbar-track { 
@@ -143,6 +145,14 @@
     
     .card-face::-webkit-scrollbar-thumb:hover { 
       background: rgba(201, 169, 97, 0.6); 
+    }
+    
+    /* FIXED: Force scrollbar visibility on mobile */
+    @supports (-webkit-touch-callout: none) {
+      .card-face {
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+      }
     }
     
     .card-front {
@@ -221,6 +231,11 @@
 
     .skeleton-section:last-of-type {
       border-bottom: none;
+      padding-bottom: 2rem; /* FIXED: Extra padding at bottom */
+    }
+
+    #skeletonContent {
+      min-height: calc(100vh - 300px); /* FIXED: Ensure skeleton content is tall enough to scroll */
     }
 
     .skeleton-title {
@@ -258,6 +273,8 @@
       line-height: 1.8;
       color: #d1d1d6;
       text-align: justify;
+      min-height: calc(100vh - 200px); /* FIXED: Ensure content is tall enough to scroll */
+      padding-bottom: 2rem; /* FIXED: Extra padding at bottom */
     }
     
     .review-answer p {
